@@ -1,4 +1,5 @@
 from numpy import *
+import sys
 
 def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3, 
 			  mult = 2.1, sigmaOnf = 0.55, k = 2.0, cutOff = 0.5, 
@@ -10,7 +11,7 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 
 	zero = zeros((rows,cols))
 	EO = zeros((nscale, norient), dtype = object)
-	PC = zeros((norient,1), dtype = object)
+	PC = zeros((norient), dtype = object)
 	covx2 = zero
 	covy2 = zero
 	covxy = zero
@@ -48,9 +49,13 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 		logGabor[s] = exp((-(log(radius/fo))**2) / (2* log(sigmaOnf)**2))
 		logGabor[s] = logGabor[s]*lp
 		logGabor[s][0,0] = 0
+		
+	print 'Initialisation done...\n'
 
 	# Main loop ...
 	for o in range(norient):
+		print 'Calculating values for orientation %d/%d...' %(o+1, norient)
+		
 		angl = (o)*pi/norient
 		ds = sintheta * cos(angl) - costheta * sin(angl)
 		dc = costheta * cos(angl) - sintheta * sin(angl)
@@ -121,24 +126,29 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 		covx2 = covx2 + covx**2
 		covy2 = covy2 + covy**2
 		covxy = covxy + covx*covy
-	
+		
 	covx2 = covx2/(norient/2)
 	covy2 = covy2/(norient/2)
 	covxy = 4*covxy/norient;
-	denom = sqrt(covxyv**2 + (covx2 - covy2)**2) + epsilon
+	denom = sqrt(covxy**2 + (covx2 - covy2)**2) + epsilon
 	M = (covy2+covx2 + denom)/2
 	m = (covy2+covx2 - denom)/2
 	
 	Or = arctan2(EnergyV[2], EnergyV[1])
 	Or[Or<0] = Or[Or<0] + pi
-	Or = round(Or*180/pi)
+	
+	Or = around(Or*180/pi)
 	
 	OddV = sqrt(EnergyV[1]**2 + EnergyV[2]**2)
 	featType = arctan2(EnergyV[0], OddV)
+	
+	return M
+	
+	print '\nDone!'
 	
 if __name__ == '__main__':
 	import pickle
 	file = open('numpy_image', 'r')
 	im = pickle.load(file)
 	file.close()
-	phasecong(im)
+	edges = phasecong(im)
