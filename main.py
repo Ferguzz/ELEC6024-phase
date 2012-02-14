@@ -19,22 +19,20 @@ def processing(input):
 	
 	# Convert image to numpy array	
 	im = numpy.asarray(grey)
-	phase.phasecong(im)
-	
-	output = edges
-	return output
+	phase_edges = phase.phasecong(im)
+
+	return cv.fromarray(phase_edges)
 
 if __name__ == '__main__':
 
 	cv.NamedWindow('Input')
 	cv.NamedWindow('Output')	
-	# cv.NamedWindow('Debug')
 
 	if CAM_OR_PIC == 'pic':
 		print 'Press any key to quit..'
 		
 		if len(sys.argv) == 1:
-			filepath = 'kitten.jpg'
+			filepath = 'lena.jpg'
 		else:
 			filepath = sys.argv[1]
 	

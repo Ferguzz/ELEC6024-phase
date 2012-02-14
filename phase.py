@@ -153,11 +153,9 @@ if __name__ == '__main__':
 	im = pickle.load(file)
 	file.close()
 	
-	im = arange(0,16).reshape(4,4)
+	# im = arange(0,16).reshape(4,4)
 	
 	edges = phasecong(im)
-	scale = 255/amax(edges)
-	edges *= scale
 	
 	# Display result
 	cv.NamedWindow('Output')
