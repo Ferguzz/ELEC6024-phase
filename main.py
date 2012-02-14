@@ -1,27 +1,32 @@
-import cv, sys, numpy, phase
+import cv, sys, numpy, phase, collections
 
 # Use webcam for input if we can make the algorithm run in real time?
 CAM_OR_PIC = 'pic'
 
-def processing(input):
+def processing(input, canny = 0):
 	'''DO ALL PROCESSING IN HERE...'''
+	
+	output = collections.namedtuple('Processing', ['phase_data', 'canny'])
 	
 	# Convert to greyscale
 	grey = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
-	edges = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
-	smooth = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
 
 	cv.CvtColor(input, grey, cv.CV_RGB2GRAY)
 	
-	# Simple Canny edge detection
-	cv.Smooth(grey, smooth, 19)
-	cv.Canny(grey, edges, 70, 100)
+	# cv.Smooth(grey, smooth, 19)
+	# smooth = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
 	
-	# Convert image to numpy array	
+	# Simple Canny edge detection
+	canny_edges = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
+	if canny:
+		cv.Canny(grey, canny_edges, 70, 100)
+	
+	# Phase congruency calculation
+	# First onvert image to numpy array	
 	im = numpy.asarray(grey)
-	phase_edges = phase.phasecong(im)
-
-	return cv.fromarray(phase_edges)
+	phase_data = phase.phasecong(im)
+	
+	return output(phase_data, canny_edges)
 
 if __name__ == '__main__':
 
@@ -29,8 +34,7 @@ if __name__ == '__main__':
 	cv.NamedWindow('Output')	
 
 	if CAM_OR_PIC == 'pic':
-		print 'Press any key to quit..'
-		
+				
 		if len(sys.argv) == 1:
 			filepath = 'lena.jpg'
 		else:
@@ -38,9 +42,22 @@ if __name__ == '__main__':
 	
 		pic = cv.LoadImageM(filepath, cv.CV_LOAD_IMAGE_UNCHANGED)
 		cv.ShowImage('Input', pic)
- 		output = processing(pic)
-		cv.ShowImage('Output', output)
+		
+		canny = 0
+		if len(sys.argv) == 1 or len(sys.argv) == 2:
+ 			output = processing(pic)
+		elif sys.argv[2] == '--with-canny':
+			canny = 1
+			output = processing(pic, canny = 1)
+
+		phase_edges = cv.fromarray(output.phase_data.M)
+		cv.ShowImage('Output', phase_edges)
+		
+		if canny:
+			cv.NamedWindow('Canny')	
+			cv.ShowImage('Canny', output.canny)
 	
+		print '\nPress any key to quit..'
 		cv.WaitKey(0)
 	
 	else:

@@ -1,8 +1,13 @@
 from numpy import *
+from collections import namedtuple
 
 def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3, 
 			  mult = 2.1, sigmaOnf = 0.55, k = 2.0, cutOff = 0.5, 
 			  g = 10, noiseMethod = -1):
+	print '***********************************************'
+	print '*    Running phase congruency algorithm...    *'
+	print '*    Originally developed by Peter Kovesi.    *'
+	print '***********************************************\n'
 				
 	epsilon = 0.0001
 	rows, cols = input.shape
@@ -144,7 +149,8 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 	
 	print '\nDone!'
 	
-	return M
+	phase_info = namedtuple('Phase', ['M', 'm', 'Or', 'featType', 'PC', 'EO', 'T', 'pcSum'])
+	return phase_info(M, m, Or, featType, PC, EO, T, pcSum)
 	
 if __name__ == '__main__':
 	import pickle, cv
@@ -153,11 +159,16 @@ if __name__ == '__main__':
 	im = pickle.load(file)
 	file.close()
 	
+	# Test array
 	# im = arange(0,16).reshape(4,4)
 	
-	edges = phasecong(im)
+	phase_data = phasecong(im)
+	
+	# Access data like so...
+	edges = cv.fromarray(phase_data.M)
+	corners = cv.fromarray(phase_data.m)
 	
 	# Display result
 	cv.NamedWindow('Output')
-	cv.ShowImage('Output', cv.fromarray(edges))
+	cv.ShowImage('Output', edges)
 	cv.WaitKey(0)
