@@ -1,5 +1,4 @@
 from numpy import *
-import sys
 
 def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3, 
 			  mult = 2.1, sigmaOnf = 0.55, k = 2.0, cutOff = 0.5, 
@@ -33,13 +32,14 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 	x,y = meshgrid(rangex, rangey)
 	radius = sqrt(x**2 + y**2)
 	theta = arctan2(-y, x)
+
+	lp = fft.ifftshift(1.0 / (1.0 + (radius / 0.45)**(2*15)))
+	
 	radius = fft.ifftshift(radius)
 	theta = fft.ifftshift(theta)
+	radius[0,0] = 1
 	sintheta = sin(theta)
 	costheta = cos(theta)
-	
-	lp = fft.ifftshift(1.0 / (1.0 + (radius / 0.45)**(2*15)))
-	radius[0,0] = 1
 	
 	logGabor = zeros(nscale, dtype = object)
 	
@@ -142,13 +142,24 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 	OddV = sqrt(EnergyV[1]**2 + EnergyV[2]**2)
 	featType = arctan2(EnergyV[0], OddV)
 	
-	return M
-	
 	print '\nDone!'
 	
+	return M
+	
 if __name__ == '__main__':
-	import pickle
+	import pickle, cv
+	# Load image
 	file = open('numpy_image', 'r')
 	im = pickle.load(file)
 	file.close()
+	
+	im = arange(0,16).reshape(4,4)
+	
 	edges = phasecong(im)
+	scale = 255/amax(edges)
+	edges *= scale
+	
+	# Display result
+	cv.NamedWindow('Output')
+	cv.ShowImage('Output', cv.fromarray(edges))
+	cv.WaitKey(0)
