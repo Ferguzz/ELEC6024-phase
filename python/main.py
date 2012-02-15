@@ -6,7 +6,7 @@ CAM_OR_PIC = 'pic'
 def processing(input, canny = 0):
 	'''DO ALL PROCESSING IN HERE...'''
 	
-	output = collections.namedtuple('Processing', ['phase_data', 'canny'])
+	output = collections.namedtuple('Processing', ['phase_edges', 'canny'])
 	
 	# Convert to greyscale
 	grey = cv.CreateMat(input.height, input.width, cv.CV_8UC1)
@@ -26,7 +26,11 @@ def processing(input, canny = 0):
 	im = numpy.asarray(grey)
 	phase_data = phase.phasecong(im)
 	
-	return output(phase_data, canny_edges)
+	# phase_edges = phase.nonmax(phase_data.M, phase_data.Or, 1.3)
+	
+	phase_edges = cv.fromarray(phase_data.M)
+	
+	return output(phase_edges, canny_edges)
 
 if __name__ == '__main__':
 
@@ -35,7 +39,7 @@ if __name__ == '__main__':
 	if CAM_OR_PIC == 'pic':
 				
 		if len(sys.argv) == 1:
-			filepath = '../images/kitten.jpg'
+			filepath = '../images/baboon.jpg'
 		else:
 			filepath = '../images/' + sys.argv[1]
 	
@@ -49,9 +53,8 @@ if __name__ == '__main__':
 			canny = 1
 			output = processing(pic, canny = 1)
 
-		phase_edges = cv.fromarray(output.phase_data.M)
 		cv.NamedWindow('Output')	
-		cv.ShowImage('Output', phase_edges)
+		cv.ShowImage('Output', output.phase_edges)
 		
 		if canny:
 			cv.NamedWindow('Canny')	
