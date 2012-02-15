@@ -150,9 +150,6 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 	OddV = sqrt(EnergyV[1]**2 + EnergyV[2]**2)
 	featType = arctan2(EnergyV[0], OddV)
 	
-	print M.shape
-	exit()
-	
 	print '\nDone!'
 	
 	phase_info = namedtuple('Phase', ['M', 'm', 'Or', 'featType', 'PC', 'EO', 'T', 'pcSum'])

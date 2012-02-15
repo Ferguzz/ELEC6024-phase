@@ -37,7 +37,7 @@ if __name__ == '__main__':
 		if len(sys.argv) == 1:
 			filepath = '../images/kitten.jpg'
 		else:
-			filepath = sys.argv[1]
+			filepath = '../images/' + sys.argv[1]
 	
 		pic = cv.LoadImageM(filepath, cv.CV_LOAD_IMAGE_UNCHANGED)
 		cv.ShowImage('Input', pic)
