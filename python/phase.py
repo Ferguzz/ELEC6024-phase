@@ -4,68 +4,11 @@ import cv
 
 # set_printoptions(threshold='nan')
 
-def hyst(input, t1, t2):
-	if t1 < t2:
-		t1, t2 = t2, t1
-	abovet2 = input > t2
-	abovet1r, abovet1c = where(input > t1)
-	
-	# Struggling to convert this matlab function to something in python...
-	# return bwselect(input, abovet2, abovet1c, abovet1r, 8)
-	
-def nonmax(input, orient, radius):
-	
-	# Error checking
-	if size(input) != size(orient):
-		print 'Error in non-maximal suppression: Image and orientation are different sizes...\n'
-		return input
-	if radius < 1:
-		print 'Error in non-maximal suppression: Radius must be >= 1.'
-		return input
-		
-	print '\nPerforming non-maximal suppression.  This could take a while...\n'
-		
-	rows,cols = input.shape
-	im = zeros((rows,cols))
-	
-	iradius = int(ceil(radius))
-	angle = arange(181)*pi/180
-	xoff = radius*cos(angle)
-	yoff = radius*sin(angle)
-	
-	hfrac = xoff - floor(xoff)
-	vfrac = yoff - floor(yoff)
-	
-	for row in range(iradius, rows - iradius):
-		for col in range(iradius, cols - iradius):
-			Or = orient[row,col]
-			x = col + xoff[Or]
-			y = row - yoff[Or]
-			
-			fx = floor(x)
-			cx = ceil(x)
-			fy = floor(y)
-			cy = ceil(y)
-			tl = input[fy,fx]
-			tr = input[fy,cx]
-			bl = input[cy, fx]
-			br = input[cy, cx]
-			
-			upperavg = tl + hfrac[Or]*(tr-tl)
-			loweravg = bl + hfrac[Or]*(br-bl)
-			v2 = upperavg + vfrac[Or]*(loweravg - upperavg)
-			
-			if input[row,col] > v2:
-				im[row,col] = input[row,col]
-				
-	# Missing a final step here which removes some repeated local maxima...		
-	return im
-
 def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3, 
 			  mult = 2.1, sigmaOnf = 0.55, k = 2.0, cutOff = 0.5, 
 			  g = 10, noiseMethod = -1):
 			
-	print '***********************************************'
+	print '\n***********************************************'
 	print '*    Running phase congruency algorithm...    *'
 	print '*    Originally developed by Peter Kovesi.    *'
 	print '***********************************************\n'
@@ -218,6 +161,63 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 		
 	phase_info = namedtuple('Phase', ['M', 'm', 'Or', 'featType', 'PC', 'EO', 'T', 'pcSum'])
 	return phase_info(M, m, Or, featType, PC, EO, T, pcSum)
+
+def hyst(input, t1, t2):
+	if t1 < t2:
+		t1, t2 = t2, t1
+	abovet2 = input > t2
+	abovet1r, abovet1c = where(input > t1)
+	
+	# Struggling to convert this matlab function to something in python...
+	# return bwselect(input, abovet2, abovet1c, abovet1r, 8)
+	
+def nonmax(input, orient, radius):
+	
+	# Error checking
+	if size(input) != size(orient):
+		print 'Error in non-maximal suppression: Image and orientation are different sizes...\n'
+		return input
+	if radius < 1:
+		print 'Error in non-maximal suppression: Radius must be >= 1.'
+		return input
+		
+	print '\nPerforming non-maximal suppression.  This could take a while...\n'
+		
+	rows,cols = input.shape
+	im = zeros((rows,cols))
+	
+	iradius = int(ceil(radius))
+	angle = arange(181)*pi/180
+	xoff = radius*cos(angle)
+	yoff = radius*sin(angle)
+	
+	hfrac = xoff - floor(xoff)
+	vfrac = yoff - floor(yoff)
+	
+	for row in range(iradius, rows - iradius):
+		for col in range(iradius, cols - iradius):
+			Or = orient[row,col]
+			x = col + xoff[Or]
+			y = row - yoff[Or]
+			
+			fx = floor(x)
+			cx = ceil(x)
+			fy = floor(y)
+			cy = ceil(y)
+			tl = input[fy,fx]
+			tr = input[fy,cx]
+			bl = input[cy, fx]
+			br = input[cy, cx]
+			
+			upperavg = tl + hfrac[Or]*(tr-tl)
+			loweravg = bl + hfrac[Or]*(br-bl)
+			v2 = upperavg + vfrac[Or]*(loweravg - upperavg)
+			
+			if input[row,col] > v2:
+				im[row,col] = input[row,col]
+				
+	# Missing a final step here which removes some repeated local maxima...		
+	return im
 	
 if __name__ == '__main__':
 	import pickle, cv
