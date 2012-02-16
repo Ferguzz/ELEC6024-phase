@@ -5,6 +5,21 @@ import cv, sys, numpy, phase, collections, argparse
 # Use webcam for input if we can make the algorithm run in real time?
 CAM_OR_PIC = 'pic'
 
+def contrast(pic, value):
+	h = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	s = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	v = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	cv.CvtColor(pic, pic, cv.CV_BGR2HSV)
+	cv.Split(pic, h,s,v, None)
+	v = numpy.asarray(v, dtype = float)
+	v *= args.contrast
+	v = numpy.clip(v, 0, 255)
+	v = v.astype('uint8')
+	v = cv.fromarray(v)
+	cv.Merge(h,s,v, None, pic)
+	cv.CvtColor(pic,pic, cv.CV_HSV2BGR)
+	return pic
+
 def processing(input, args):
 	'''DO ALL PROCESSING IN HERE...'''
 	
@@ -56,18 +71,7 @@ if __name__ == '__main__':
 		pic = cv.LoadImageM(filename, cv.CV_LOAD_IMAGE_UNCHANGED)
 		
 		if args.contrast != 1:
-			h = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
-			s = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
-			v = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
-			cv.CvtColor(pic, pic, cv.CV_BGR2HSV)
-			cv.Split(pic, h,s,v, None)
-			v = numpy.asarray(v, dtype = float)
-			v *= args.contrast
-			v = numpy.clip(v, 0, 255)
-			v = v.astype('uint8')
-			v = cv.fromarray(v)
-			cv.Merge(h,s,v, None, pic)
-			cv.CvtColor(pic,pic, cv.CV_HSV2BGR)
+			pic = contrast(pic, args.contrast)
 		
 		cv.ShowImage('Input', pic)	
 		

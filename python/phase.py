@@ -106,7 +106,7 @@ def phasecong(input, nscale = 4, norient = 6, minWaveLength = 3,
 					tau = (edges[ind] + edges[ind+1])/2
 				maxAn = An
 			else:
-				maximum(maxAn, An)
+				maxAn = maximum(maxAn, An)
 			
 		EnergyV[0] = EnergyV[0] + sumE_ThisOrient
 		EnergyV[1] = EnergyV[1] + cos(angl)*sumO_ThisOrient
