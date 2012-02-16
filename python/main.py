@@ -1,9 +1,34 @@
 #! /usr/bin/python
 
-import cv, sys, numpy, phase, collections, argparse
+import cv, sys, phase, collections, argparse, random
+import numpy as np
 
 # Use webcam for input if we can make the algorithm run in real time?
 CAM_OR_PIC = 'pic'
+
+def salt_and_pepper(pic, value):
+	h = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	s = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	v = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
+	cv.CvtColor(pic, pic, cv.CV_BGR2HSV)
+	cv.Split(pic, h,s,v, None)
+	v = np.asarray(v)
+	row,col = v.shape
+	r = range(np.size(v))
+	random.shuffle(r)
+	noise_pixels = r[:int(value*np.size(v))]
+	for pix in noise_pixels:
+		x = pix/row
+		y = pix%col
+		if random.random()>0.5:
+			v[x,y] = 255
+		else:
+			v[x,y] = 0
+	v = cv.fromarray(v)
+	cv.Merge(h,s,v, None, pic)
+	cv.CvtColor(pic,pic, cv.CV_HSV2BGR)
+	
+	return pic
 
 def contrast(pic, value):
 	h = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
@@ -11,9 +36,9 @@ def contrast(pic, value):
 	v = cv.CreateMat(pic.height, pic.width, cv.CV_8UC1)
 	cv.CvtColor(pic, pic, cv.CV_BGR2HSV)
 	cv.Split(pic, h,s,v, None)
-	v = numpy.asarray(v, dtype = float)
+	v = np.asarray(v, dtype = float)
 	v *= args.contrast
-	v = numpy.clip(v, 0, 255)
+	v = np.clip(v, 0, 255)
 	v = v.astype('uint8')
 	v = cv.fromarray(v)
 	cv.Merge(h,s,v, None, pic)
@@ -42,7 +67,7 @@ def processing(input, args):
 	
 	# Phase congruency calculation
 	# First onvert image to numpy array	
-	im = numpy.asarray(grey)
+	im = np.asarray(grey)
 	phase_data = phase.phasecong(im, noiseMethod = args.noise)
 	
 	if args.corners:
@@ -61,6 +86,8 @@ if __name__ == '__main__':
 	parser.add_argument('--corners', dest = 'corners', action = 'store_true', help = 'Display corners detected by phase congruency operator')
 	parser.add_argument('--noise', nargs = '?', metavar = 'int', type = int, dest = 'noise', default = -1, help = 'Phase congruency noise removal method.  -1 = median, - 2 = mode.  Positive values are interpreted as is.')
 	parser.add_argument('--contrast', nargs = '?', metavar = 'float', dest = 'contrast', type = float, default = 1, help = 'Alter contrast of input image')
+	parser.add_argument('--salt', nargs = '?', metavar = 'float', dest = 'salt', type = float, default = 0, help = 'Add salt and pepper noise to the input image')
+	
 	args = parser.parse_args()
 	
 	cv.NamedWindow('Input')
@@ -72,7 +99,10 @@ if __name__ == '__main__':
 		
 		if args.contrast != 1:
 			pic = contrast(pic, args.contrast)
-		
+			
+		if args.salt != 0:
+			pic = salt_and_pepper(pic, args.salt)
+			
 		cv.ShowImage('Input', pic)	
 		
  		output = processing(pic, args)
